@@ -1,21 +1,33 @@
+# Stage 1: Imagen Alpine completa para obtener poppler-utils
+FROM alpine:3.22 AS poppler-stage
+RUN apk add --no-cache poppler-utils
+
+# Stage 2: Imagen n8n hardened
 FROM docker.io/n8nio/n8n:latest
 
 USER root
 
-# Investigar qué tipo de sistema es
-RUN echo "=== OS Information ===" && \
-    cat /etc/os-release 2>/dev/null || echo "No /etc/os-release" && \
-    echo "" && \
-    echo "=== Available package managers ===" && \
-    (command -v apk && echo "apk: FOUND") || echo "apk: NOT FOUND" && \
-    (command -v apt-get && echo "apt-get: FOUND") || echo "apt-get: NOT FOUND" && \
-    (command -v yum && echo "yum: FOUND") || echo "yum: NOT FOUND" && \
-    echo "" && \
-    echo "=== Trying to install poppler-utils ===" && \
-    (apk add --no-cache poppler-utils && echo "SUCCESS with apk") || \
-    (apt-get update && apt-get install -y poppler-utils && echo "SUCCESS with apt-get") || \
-    (yum install -y poppler-utils && echo "SUCCESS with yum") || \
-    echo "FAILED - No package manager worked"
+# Copiar SOLO los binarios necesarios
+COPY --from=poppler-stage /usr/bin/pdftotext /usr/local/bin/pdftotext
+COPY --from=poppler-stage /usr/bin/pdfinfo /usr/local/bin/pdfinfo
+
+# Copiar librerías compartidas necesarias
+COPY --from=poppler-stage /usr/lib/libpoppler.so* /usr/lib/
+COPY --from=poppler-stage /usr/lib/libpoppler-cpp.so* /usr/lib/
+COPY --from=poppler-stage /usr/lib/libfreetype.so* /usr/lib/
+COPY --from=poppler-stage /usr/lib/libpng16.so* /usr/lib/
+COPY --from=poppler-stage /usr/lib/libjpeg.so* /usr/lib/
+COPY --from=poppler-stage /usr/lib/libopenjp2.so* /usr/lib/
+COPY --from=poppler-stage /usr/lib/liblcms2.so* /usr/lib/
+COPY --from=poppler-stage /usr/lib/libtiff.so* /usr/lib/
+COPY --from=poppler-stage /usr/lib/libz.so* /usr/lib/
+COPY --from=poppler-stage /usr/lib/libbz2.so* /usr/lib/
+COPY --from=poppler-stage /usr/lib/libwebp.so* /usr/lib/
+COPY --from=poppler-stage /usr/lib/libzstd.so* /usr/lib/
+COPY --from=poppler-stage /usr/lib/liblzma.so* /usr/lib/
+
+# Verificar que funciona
+RUN pdftotext -v
 
 USER node
 
