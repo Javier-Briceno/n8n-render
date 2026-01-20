@@ -20,7 +20,5 @@ COPY --from=poppler-stage /etc/fonts/ /etc/fonts/
 # Verificar
 RUN pdftotext -v
 
+# Volver al usuario node
 USER node
-
-EXPOSE 5678
-CMD ["n8n"]
