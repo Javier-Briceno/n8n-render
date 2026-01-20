@@ -3,10 +3,7 @@ FROM n8nio/n8n:latest
 
 USER root
 
-# n8n está basado en Debian → usamos apt
-RUN apt-get update && \
-    apt-get install -y poppler-utils && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# n8n está basado en Alpine Linux, por lo que usamos apk para instalar poppler-utils
+RUN apk add --no-cache poppler-utils
 
 USER node
