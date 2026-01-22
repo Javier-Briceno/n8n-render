@@ -1,24 +1,8 @@
-# Stage 1: Obtener poppler-utils
-FROM alpine:3.22 AS poppler-stage
-RUN apk add --no-cache poppler-utils fontconfig
-
-# Stage 2: n8n
+# Use the latest n8n image as the base
 FROM docker.io/n8nio/n8n:latest
 
+# Switch to root user to install packages
 USER root
 
-# Copiar binarios
-COPY --from=poppler-stage /usr/bin/pdftotext /usr/local/bin/
-COPY --from=poppler-stage /usr/bin/pdfinfo /usr/local/bin/
-
-# Copiar TODAS las librerías (más simple y seguro)
-COPY --from=poppler-stage /usr/lib/ /usr/lib/
-
-# Copiar configuración de fontconfig
-COPY --from=poppler-stage /etc/fonts/ /etc/fonts/
-
-# Verificar
-RUN pdftotext -v
-
-# Volver al usuario node
+# Switch back to the n8n user
 USER node
